@@ -1,45 +1,44 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 export const CatGalleryFetch = () => {
 
-    // Estado para almacenar las imágenes de gatitos, lo inicializamos con un array vacío
-    const [cats, setCats] = useState([]);
+  // Estado para almacenar las imágenes de gatitos, lo inicializamos con un array vacío
+  const [cats, setCats] = useState([]);
   
-    // Estado para manejar posibles errores
-    const [error, setError] = useState(null);
-  
-    // Método para realizar la petición a la API con fetch
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.thecatapi.com/v1/images/search?limit=10');
-  
-        // Convertimos la respuesta a formato JSON
-        const data = await response.json();
-  
-        // Setear la variable de estado cats a través de su método setCats con los datos recibidos de la API
+  // Estado para manejar posibles errores
+  const [error, setError] = useState(null);
+
+  // Estado para llevar la cuenta de cuántos gatos se han cargado
+  const [page, setPage] = useState(1);
+
+  // Método para realizar la petición a la API con fetch
+  const fetchData = async (loadMore = false) => {
+    try {
+      const response = await fetch(`https://api.thecatapi.com/v1/images/search?limit=10&page=${page}&order=DESC`);
+
+      // Convertimos la respuesta a formato JSON
+      const data = await response.json();
+
+      if (loadMore) {
+        // Si estamos cargando más gatos, añadimos los nuevos al array existente
+        setCats(prevCats => [...prevCats, ...data]);
+      } else {
+        // Si no, reemplazamos los gatos completamente
         setCats(data);
-  
-      } catch (error) {
-        console.log('Error al realizar la solicitud', error); // Debugg
-        setError('Error al realizar la solicitud');
       }
-    };
-  
-    // useEffect ejecuta el método fetchData la primera vez que se monta el componente ( hace petición de la API)
-    useEffect(() => {
-      fetchData();
-    }, []);
-  
-    // Si hay error, mostramos el mensaje de error
-    if (error) {
-      return (
-        <div className="alert alert-danger text-center" role="alert">
-          {error}
-        </div>
-      );
+
+    } catch (error) {
+      console.log('Error al realizar la solicitud', error);
+      setError('Error al realizar la solicitud');
     }
-  
-   // Método para cargar más gatos
+  };
+
+  // useEffect ejecuta el método fetchData la primera vez que se monta el componente
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Método para cargar más gatos
   const loadMoreCats = () => {
     setPage(prevPage => prevPage + 1);
     fetchData(true);  // Indicamos que estamos cargando más gatos
